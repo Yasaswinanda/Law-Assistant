@@ -1,0 +1,14 @@
+flask
+flask-cors
+werkzeug
+weasyprint
+markdown
+PyPDF2
+pdf2image
+pytesseract
+sentence-transformers
+faiss-cpu
+google-generativeai
+python-dotenv
+numpy
+
