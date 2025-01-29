@@ -45,11 +45,11 @@ Ideal for:
 
 2. Create `.env` file:
    ```env
-   FLASK_APP=app.py
+   FLASK_APP=Api.py
    GEMINI_API_KEY=your_api_key_here
    ```
 
-3. Install dependencies:
+3. Install dependencies (Not needed if using docker):
    ```bash
    pip install -r requirements.txt
    ```
@@ -58,8 +58,7 @@ Ideal for:
 
 ### Docker (Recommended)
 ```bash
-docker build -t notes-generator .
-docker run -p 5000:5000 notes-generator
+docker compose up
 ```
 
 ### Local Development
@@ -112,7 +111,7 @@ Open `index.html` in your browser to access the frontend.
 Create a `.env` file with these required settings:
 
 ```env
-FLASK_APP=app.py
+FLASK_APP=Api.py
 GEMINI_API_KEY=your_api_key_here
 ```
 
