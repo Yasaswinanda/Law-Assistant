@@ -33,7 +33,7 @@ Ideal for:
 
 ### Prerequisites
 - Python 3.9+
-- Docker (optional)
+- Docker, Docker compose
 - Google Gemini API key
 
 ### Setup
