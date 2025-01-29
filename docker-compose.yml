@@ -1,0 +1,7 @@
+name: notebook
+
+services:
+  api:
+    image: notebook:latest
+    ports:
+      - 5000:5000
