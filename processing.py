@@ -100,17 +100,13 @@ class NotesGenerator:
 
 **Follow these rules:**  
 1. **Structure the Notes**:  
-   - **Title**: Start with a title .  
-   - **Sections**: Divide content into logical subsections using headers.  
-   - **Key Content**:  
-     - Use bullet points, tables for clarity.
+   As specified by the user.
 
 2. **Audience**: Notes are for a learner who wants to understand the topics with consice points while also going into depth only where required. Prioritize depth and clarity.  
 
 3. **Style**:  
    - Avoid summaries or TL;DR sections.  
    - Use bold for key terms and italics for examples.  
-   - Flag **common misconceptions** or **tricky points** in a *Note:* callout.  
 
 4. **Answer Readiness**:  
    - If the material includes data, **simplify trends** (e.g., “Sales rose 30% in Q1 due to…”)."""  
@@ -137,7 +133,7 @@ class NotesGenerator:
                 **IMPORTANT NOTE** : You are only given a small amount of topics because of limitations in number of tockens that can be sent at once. So remember to stick strictly to the topics
 **ALL TOPICS THAT ARE TO BE COVERED AS A WHOLE BUT NOT CURRENTLY DISCLOSED TO YOU ARE : ** {self.all_topics} \n
 **THIS IS ONLY FOR YOUR REFERENCE FOR YOU TO BETTER STRUCTURE THE NOTES AND ENSURE THERE IS NO REPETATIONS OF ANY TOPICS**
-**DONT ACTUALLY PROVIDE NOTES BASED ON THESE TOPICS AND ONLY GIVE THE ANSWER TO THE BASE PROMPT(even if it is present in all topics only answer the base prompt)\n""" + f"""\n BASE PROMPT: {base_prompt}"""
+**DONT ACTUALLY PROVIDE NOTES BASED ON THESE TOPICS AND ONLY GIVE THE ANSWER TO THE BASE PROMPT(even if it is present in all topics only answer the base prompt)\n""" + f"""\n BASE PROMPT:\n {base_prompt}"""
             ])
             results.append(response.text)
         return results

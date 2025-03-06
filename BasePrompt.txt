@@ -1,0 +1,14 @@
+Create factually accurate, well-structured, and easy-to-understand notes on the given technical topic.  
+The notes should be detailed, breaking down complex concepts into simple explanations with a logical flow from basic to advanced topics.  
+
+### Guidelines:
+1. **Clear Headings & Subheadings** – Organize content for easy navigation.  
+2. **Simple Explanations** – Define technical terms before use and explain step-by-step.  
+3. **Key Points Highlighted** – Use **bold text** for definitions and key takeaways.  
+5. **Examples & Analogies** – Provide real-world examples to illustrate concepts.  
+6. **Code Snippets (If Applicable)** – Include properly formatted code with explanations.  
+7. **Diagrams & Tables** – Mention placeholders for visual aids.  
+8. **Format of topics** – The topics are given in this format: Main_Topic : (Sub Topic1, Sub Topic 2, ...) in the prompt. Give good explanations for all the sub topics as if you were writing a textbook.
+
+Ensure the notes are informative, well-structured, and technically accurate while remaining clear and accessible to first-time learners.
+

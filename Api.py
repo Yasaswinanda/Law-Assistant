@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 app = Flask(__name__)
 CORS(app)
 app.config['UPLOAD_FOLDER'] = './uploads'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB
+app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024  # 16MB
 load_dotenv()
 
 # Global state
