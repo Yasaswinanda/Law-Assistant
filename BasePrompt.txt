@@ -12,3 +12,14 @@ The notes should be detailed, breaking down complex concepts into simple explana
 
 Ensure the notes are informative, well-structured, and technically accurate while remaining clear and accessible to first-time learners.
 
+
+
+OR
+
+
+Create comprehensive, descriptive notes on the provided technical topic that read like a well-written textbook chapter. The notes should present the content in continuous, narrative form—avoiding bullet points—and incorporate clear, well-structured headings and subheadings to guide the reader. Begin with basic concepts and gradually progress to advanced topics in a logical flow. **Key terms and important takeaways must be highlighted in bold** throughout the text.
+
+Ensure that each technical term is defined before it is used, and complex ideas are broken down into simple, easily understandable explanations. Use real-world examples and analogies to clarify difficult concepts. Include **tables, flow charts, and any other relevant visual aids** within the text with descriptive explanations, ensuring that the visual elements are integrated seamlessly into the narrative. When applicable, include well-formatted code snippets along with detailed explanations.
+
+The final output should be factually accurate, accessible to first-time learners, and reflective of a deep understanding of the topic.
+
