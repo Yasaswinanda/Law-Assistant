@@ -120,20 +120,21 @@ class NotesGenerator:
         return context
 
     def generate_notes(self, vector_store, base_prompt, topics):
+        context = ""
         """Generate notes for multiple topics"""
         results = []
         for topic in topics:
-            relevant_passages = vector_store.search(topic, k=10)
-            context = self._build_context(relevant_passages)
+            relevant_passages = vector_store.search(topic, k=(10 // len(topics)))
+            context += self._build_context(relevant_passages)
             
-            chat = self.model.start_chat(history=[])
-            response = chat.send_message([
-                self.SYSTEM_PROMPT,
-                f"\n\nTOPIC: {topic}\n\n{context}" + "\n\n" + f"""
-                **IMPORTANT NOTE** : You are only given a small amount of topics because of limitations in number of tockens that can be sent at once. So remember to stick strictly to the topics
+        chat = self.model.start_chat(history=[])
+        response = chat.send_message([
+            self.SYSTEM_PROMPT,
+            f"\n\nTOPICS: {"\n".join(topics)}\n\n{context}" + "\n\n" + f"""
+            **IMPORTANT NOTE** : You are only given a small amount of topics because of limitations in number of tockens that can be sent at once. So remember to stick strictly to the topics
 **ALL TOPICS THAT ARE TO BE COVERED AS A WHOLE BUT NOT CURRENTLY DISCLOSED TO YOU ARE : ** {self.all_topics} \n
 **THIS IS ONLY FOR YOUR REFERENCE FOR YOU TO BETTER STRUCTURE THE NOTES AND ENSURE THERE IS NO REPETATIONS OF ANY TOPICS**
 **DONT ACTUALLY PROVIDE NOTES BASED ON THESE TOPICS AND ONLY GIVE THE ANSWER TO THE BASE PROMPT(even if it is present in all topics only answer the base prompt)\n""" + f"""\n BASE PROMPT:\n {base_prompt}"""
-            ])
-            results.append(response.text)
+        ])
+        results.append(response.text)
         return results

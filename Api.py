@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 app = Flask(__name__)
 CORS(app)
 app.config['UPLOAD_FOLDER'] = './uploads'
-app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024  # 16MB
+app.config['MAX_CONTENT_LENGTH'] = 2000 * 1024 * 1024  # 16MB
 load_dotenv()
 
 # Global state
@@ -86,9 +86,8 @@ def handle_generation():
     data = request.json
     try:
         base_prompt = data.get('base_prompt', 'Generate comprehensive notes about:')
-        raw_topics = data.get('topics', '')
-        topics = [t.strip() for t in raw_topics.split(',')] if isinstance(raw_topics, str) else [t.strip() for t in raw_topics]
-        batch_size = max(1, int(data.get('batch_size', 1)))
+        topics = data.get('topics', '')
+        batch_size = int(data.get('batch_size'))
 
         if not topics:
             return jsonify({'error': 'No topics provided'}), 400
@@ -104,7 +103,7 @@ def handle_generation():
                 topics=batch
             )
             results.extend(batch_results)
-
+        
         # Process content to remove topic headings
         processed_contents = []
         for topic, content in zip(topics, results):
@@ -183,13 +182,15 @@ def handle_generation():
             pdf_data = f.read()
         os.unlink(pdf_file.name)
 
+        
+
         # Return PDF response
         return Response(
             pdf_data,
             mimetype='application/pdf',
             headers={'Content-Disposition': 'attachment; filename="generated_notes.pdf"'}
         )
-
+    
     except Exception as e:
         app.logger.error(f"Generation error: {str(e)}")
         return jsonify({'error': 'Failed to generate notes'}), 500
