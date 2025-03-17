@@ -130,38 +130,64 @@ def handle_generation():
             <head>
                 <meta charset="utf-8">
                 <style>
+                    /* Define A4 page size and minimal margins for printing */
+                    @page {{ size: A4; margin: 1cm; }}
                     body {{ 
-                        font-family: Arial, sans-serif; 
-                        line-height: 1.6; 
-                        margin: 2cm; 
+                        font-family: Georgia, serif;
+                        font-size: 12pt;
+                        line-height: 1.5;
+                        margin: 0;
+                        padding: 1cm;
+                        text-align: justify;
+                        background: #fff;
                     }}
                     h1, h2, h3 {{
-                        color: #2c3e50;
-                        margin-top: 1.5em;
+                        font-weight: bold;
+                        margin-top: 1em;
+                        margin-bottom: 0.5em;
+                        border-bottom: 1px solid #ccc;
+                        padding-bottom: 0.2em;
                     }}
+                    h1 {{ color: #003366; }}  /* Deep navy blue */
+                    h2 {{ color: #005B4F; }}  /* Dark teal */
+                    h3 {{ color: #00796B; }}  /* Muted cyan */
                     pre {{
                         background-color: #f8f9fa;
-                        padding: 1em;
+                        padding: 0.5em;
                         border-radius: 5px;
                         overflow-x: auto;
+                        font-size: 10pt;
                     }}
                     code {{
                         background-color: #f8f9fa;
                         padding: 0.2em 0.4em;
                         border-radius: 3px;
+                        font-size: 10pt;
                     }}
                     table {{
                         border-collapse: collapse;
                         width: 100%;
-                        margin: 1em 0;
+                        margin: 0.5em 0;
+                        font-size: 10pt;
                     }}
                     th, td {{
                         border: 1px solid #dfe2e5;
-                        padding: 0.5em;
+                        padding: 0.3em;
                         text-align: left;
                     }}
+                    ul, ol {{
+                        margin-left: 4px;  /* Minimum indentation */
+                        padding-left: 4px;
+                    }}
+                    li {{
+                        margin-bottom: 4px;
+                    }}
+                    b, strong {{
+                        font-weight: bold;
+                        color: #222; /* Dark gray for contrast */
+                    }}
                     @media print {{
-                        body {{ margin: 1cm; }}
+                        body {{ margin: 0; padding: 1cm; }}
                         pre {{ white-space: pre-wrap !important; }}
                     }}
                 </style>

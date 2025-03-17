@@ -82,7 +82,7 @@ class NotesGenerator:
         self.all_topics = all_topics
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel(
-            model_name="gemini-1.5-flash",
+            model_name="gemini-2.0-flash",
             generation_config={
                 "temperature": 0.7,
                 "top_p": 0.95,
@@ -101,15 +101,18 @@ class NotesGenerator:
 **Follow these rules:**  
 1. **Structure the Notes**:  
    As specified by the user.
+   Directly start off with the answer, no need to tell things lik "Ok i understand ..." or something like that.
 
-2. **Audience**: Notes are for a learner who wants to understand the topics with consice points while also going into depth only where required. Prioritize depth and clarity.  
+2. **Audience**: Notes are for a learner who wants to understand the topics while also going into depth only where required. Prioritize depth and clarity.  
 
 3. **Style**:  
    - Avoid summaries or TL;DR sections.  
-   - Use bold for key terms and italics for examples.  
+   - Use bold for key terms and italics for examples.
+   - Use tables, code snippets, examples where necessarty.
 
 4. **Answer Readiness**:  
-   - If the material includes data, **simplify trends** (e.g., “Sales rose 30% in Q1 due to…”)."""  
+   - If the material includes data, **simplify trends** (e.g., “Sales rose 30% in Q1 due to…”).
+   - If the source does not have complete information for the explaination, then you may use you own knowledge to fill the gaps and also to structure the notes."""  
 
     def _build_context(self, relevant_passages):
         context = "RELEVANT PASSAGES:\n"
