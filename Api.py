@@ -157,12 +157,14 @@ def handle_generation():
                         border-radius: 5px;
                         overflow-x: auto;
                         font-size: 10pt;
+                        white-space: pre; /* Preserve whitespace exactly */
                     }}
                     code {{
                         background-color: #f8f9fa;
                         padding: 0.2em 0.4em;
                         border-radius: 3px;
                         font-size: 10pt;
+                        white-space: pre-wrap; /* Allow wrapping if needed */
                     }}
                     table {{
                         border-collapse: collapse;
@@ -176,7 +178,7 @@ def handle_generation():
                         text-align: left;
                     }}
                     ul, ol {{
-                        margin-left: 4px;  /* Minimum indentation */
+                        margin-left: 4px;  /* Minimal indentation */
                         padding-left: 4px;
                     }}
                     li {{
@@ -188,7 +190,7 @@ def handle_generation():
                     }}
                     @media print {{
                         body {{ margin: 0; padding: 1cm; }}
-                        pre {{ white-space: pre-wrap !important; }}
+                        pre {{ white-space: pre; }} /* Ensure pre remains formatted in print */
                     }}
                 </style>
             </head>
@@ -197,6 +199,7 @@ def handle_generation():
             </body>
         </html>
         """
+
 
         # Generate PDF
         pdf_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
