@@ -11,4 +11,7 @@ faiss-cpu
 google-generativeai
 python-dotenv
 numpy
-
+pydantic
+jinja2>=3.0.3
+setuptools>=65.5.0
+hf_xet

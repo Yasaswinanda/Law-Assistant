@@ -8,14 +8,17 @@ WORKDIR /app
 COPY requirements.txt .
 
 RUN apt-get update && apt-get install -y \
+    poppler-utils \
     libglib2.0-0 \
     libcairo2 \
     libpango1.0-0 \
     libgdk-pixbuf2.0-0 \
     libjpeg-dev \
-    libffi-dev
+    libffi-dev \
+    tesseract-ocr
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip setuptools
+RUN pip install -r requirements.txt
 
 # Copy the entire app to the container
 COPY . .
