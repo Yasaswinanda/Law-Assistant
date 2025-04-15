@@ -78,7 +78,7 @@
             font-weight: 500;
         }
 
-        textarea, input[type="number"] {
+        textarea, input[type="number"], .topic-input {
             width: 100%;
             padding: 0.75rem;
             border: 1px solid var(--border);
@@ -87,7 +87,7 @@
             transition: border-color 0.2s;
         }
 
-        textarea:focus, input[type="number"]:focus {
+        textarea:focus, input[type="number"]:focus, .topic-input:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 2px rgba(79,70,229,0.1);
@@ -157,11 +157,11 @@
             body {
                 padding: 1rem;
             }
-            
+
             .section {
                 padding: 1.5rem;
             }
-            
+
             h1 {
                 font-size: 2rem;
             }
@@ -195,17 +195,39 @@
                 <label for="basePrompt">Base Prompt:</label>
                 <textarea id="basePrompt" rows="4"></textarea>
             </div>
-            
+
+            <!-- Toggle Input Mode -->
             <div class="input-group">
+                <label>Input Mode:</label>
+                <label style="display: flex; align-items: center; gap: 1rem;">
+                    <input type="checkbox" id="modeToggle" onchange="toggleInputMode()">
+                    <span>Use multiple inputs instead of single textarea</span>
+                </label>
+            </div>
+
+            <!-- Single Textarea Input -->
+            <div id="singleInputGroup" class="input-group">
                 <label for="topics">Topics/Questions (one per line):</label>
                 <textarea id="topics" rows="8" placeholder="Enter each topic/question on a new line"></textarea>
             </div>
-            
+
+            <!-- Multi Input Group -->
+            <div id="multiInputGroup" class="input-group" style="display: none;">
+                <label>Topics:</label>
+                <div id="multiInputsContainer">
+                    <textarea id="topic-input" class="topic-input" rows="2" placeholder="Topic 1"></textarea>
+                </div>
+                <button type="button" onclick="addTopicInput()" style="margin-top: 1rem;">
+                    ➕ Add More Topics
+                </button>
+            </div>
+
+
             <div class="input-group">
                 <label for="batchSize">Topics per Batch:</label>
                 <input type="number" id="batchSize" value="3" min="1">
             </div>
-            
+
             <button onclick="generateNotes()">
                 <i class="fas fa-magic"></i> Generate Notes
             </button>
@@ -223,25 +245,21 @@
     </div>
 
     <script>
-        // Handle file selection
         document.getElementById('pdfUpload').addEventListener('change', function(e) {
             const files = e.target.files;
             const fileList = document.getElementById('fileList');
-            fileList.innerHTML = Array.from(files).map(file => 
+            fileList.innerHTML = Array.from(files).map(file =>
                 `<div class="file-item">✅ ${file.name}</div>`
             ).join('');
-            
             uploadFiles();
         });
 
-        // Upload files to server
         async function uploadFiles() {
             const progress = document.getElementById('uploadProgress');
             const files = document.getElementById('pdfUpload').files;
-            
+
             try {
                 progress.style.display = 'flex';
-                
                 const formData = new FormData();
                 for (let file of files) {
                     formData.append('files', file);
@@ -251,13 +269,13 @@
                     method: 'POST',
                     body: formData
                 });
-                
+
                 const data = await response.json();
                 if (data.error) throw new Error(data.error);
-                
+
                 document.getElementById('fileList').innerHTML += 
                     `<div class="success-message">✅ ${data.message}</div>`;
-                
+
             } catch (error) {
                 document.getElementById('fileList').innerHTML += 
                     `<div class="error-message">⚠️ ${error.message}</div>`;
@@ -266,7 +284,24 @@
             }
         }
 
-        // Generate notes and handle PDF download
+        function toggleInputMode() {
+            const useMultiple = document.getElementById('modeToggle').checked;
+            document.getElementById('singleInputGroup').style.display = useMultiple ? 'none' : 'block';
+            document.getElementById('multiInputGroup').style.display = useMultiple ? 'block' : 'none';
+        }
+
+        // Function to add new topic input field
+        function addTopicInput() {
+            const container = document.getElementById('multiInputsContainer');
+            const newTextArea = document.createElement('textarea');
+            newTextArea.classList.add('topic-input');
+            newTextArea.id = 'topic-input';
+            newTextArea.setAttribute('rows', '2');
+            newTextArea.placeholder = `Topic ${container.children.length + 1}`;
+            container.appendChild(newTextArea);
+        }
+
+
         async function generateNotes() {
             const progress = document.getElementById('generationProgress');
             const resultsDiv = document.getElementById('results');
@@ -275,12 +310,26 @@
                 progress.classList.add('active');
                 resultsDiv.innerHTML = '<div class="status-message">Starting generation process...</div>';
 
+                let topics = [];
+                let batchSize = parseInt(document.getElementById('batchSize').value);
+                const useMultiple = document.getElementById('modeToggle').checked; // Corrected id
+                
+                if (useMultiple) {
+                    const inputs = document.querySelectorAll('.topic-input');
+                    topics = Array.from(inputs).map(i => i.value.trim()).filter(v => v);
+                    batchSize = 1;
+                } else {
+                    topics = document.getElementById('topics').value.split('\n')
+                        .map(t => t.trim()).filter(t => t);
+                }
+
                 const payload = {
                     base_prompt: document.getElementById('basePrompt').value,
-                    topics: document.getElementById('topics').value.split('\n')
-                        .filter(t => t.trim()),
-                    batch_size: parseInt(document.getElementById('batchSize').value)
+                    topics: topics,
+                    batch_size: batchSize
                 };
+
+                console.log(payload);
 
                 const response = await fetch('http://localhost:5000/generate', {
                     method: 'POST',
@@ -292,14 +341,12 @@
                     const blob = await response.blob();
                     const url = window.URL.createObjectURL(blob);
                     
-                    // Create temporary link for download
                     const a = document.createElement('a');
                     a.href = url;
                     a.download = 'generated_notes.pdf';
                     document.body.appendChild(a);
                     a.click();
                     
-                    // Cleanup
                     window.URL.revokeObjectURL(url);
                     document.body.removeChild(a);
                     
@@ -325,6 +372,7 @@
                 progress.classList.remove('active');
             }
         }
+
     </script>
 </body>
 </html>
