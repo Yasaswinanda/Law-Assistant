@@ -8,6 +8,10 @@ import pytesseract
 from sentence_transformers import SentenceTransformer
 import faiss
 
+#MONGO DB (vector database)
+#Langchain
+#flowwise
+
 class VectorStore:
     """Handles document embeddings and semantic search"""
     _model = None  # Singleton embedding model
