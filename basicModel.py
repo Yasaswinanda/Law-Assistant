@@ -9,7 +9,7 @@ import faiss
 import hashlib
 
 # Configuration
-genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+genai.configure(api_key=os.environ["GEMINI_API_KEY_GENERATE"])
 pytesseract.pytesseract.tesseract_cmd = r'/usr/bin/tesseract'  # Update path as needed
 
 class VectorStore:
@@ -122,7 +122,7 @@ Act as an **expert note-taker and tutor**. Your task is to create **detailed, se
     """
     
     model = genai.GenerativeModel(
-        model_name="gemini-1.5-flash",
+        model_name="gemini-2.5-flash",
         generation_config={
             "temperature": 0.7,
             "top_p": 0.95,
@@ -134,7 +134,7 @@ Act as an **expert note-taker and tutor**. Your task is to create **detailed, se
     chat = model.start_chat(history=[])
     response = chat.send_message([
         SYSTEM_PROMPT,
-        f"USER QUERY: {user_input}\n\n{context}"
+        f"{context}\n\nUSER QUERY: {user_input}"
     ])
     
     return response.text

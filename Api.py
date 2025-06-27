@@ -92,7 +92,7 @@ def handle_generation():
         if not topics:
             return jsonify({'error': 'No topics provided'}), 400
 
-        notes_generator = NotesGenerator(os.environ["GEMINI_API_KEY"], topics)
+        notes_generator = NotesGenerator(os.environ["GEMINI_API_KEY_GENERATE"], topics)
         results = []
 
         for i in range(0, len(topics), batch_size):

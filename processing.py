@@ -7,6 +7,8 @@ from pdf2image import convert_from_path
 import pytesseract
 from sentence_transformers import SentenceTransformer
 import faiss
+from query import QueryBuilder
+
 
 #MONGO DB (vector database)
 #Langchain
@@ -78,10 +80,7 @@ class PDFProcessor:
         return contents
 
 class NotesGenerator:
-    """Handles note generation using Gemini API"""
-    
-    SYSTEM_PROMPT = ""
-    
+    """Handles note generation using Gemini API"""    
     def __init__(self, api_key, all_topics):
         self.all_topics = all_topics
         genai.configure(api_key=api_key)
@@ -94,11 +93,11 @@ class NotesGenerator:
                 "max_output_tokens": 8192,
             }
         )
-        SYSTEM_PROMPT = f"""Act as an **expert note-taker and tutor**. Your task is to create **detailed, self-contained notes** from the provided source material and your own knowledge that:  
+        self.SYSTEM_PROMPT = f"""Act as an **expert note-taker and tutor**. Your task is to create **detailed, self-contained notes** from the provided source material and your own knowledge that:  
 1. **Teach core concepts**
 
 **IMPORTANT NOTE** : You are only given a small amount of topics because of limitations in tocken size. So remember to stick strictly to the topics
-**ALL TOPICS THAT ARE TO BE COVERED AS A WHOLE BUT NOT CURRENTLY DISCLOSED TO YOU ARE : ** {self.all_topics} \n
+**NOTE**: Additional topics exist but are not included here due to token limits. Stay focused and avoid repeating covered material.
 **THIS IS ONLY FOR YOUR REFERENCE FOR YOU TO BETTER STRUCTURE THE NOTES AND ENSURE THERE IS NO REPETATIONS OF ANY TOPICS**
 
 
@@ -127,21 +126,23 @@ class NotesGenerator:
         return context
 
     def generate_notes(self, vector_store, base_prompt, topics):
+        self.max_queries = 10
+
+        queryBuilder = QueryBuilder()
+        queries = queryBuilder.get_and_process_query("- " + "- ".join(topics), self.max_queries)
+
+
         context = ""
         """Generate notes for multiple topics"""
         results = []
-        for topic in topics:
-            relevant_passages = vector_store.search(topic, k=(10 // len(topics)))
+        for query in queries[:self.max_queries]:
+            relevant_passages = vector_store.search(query, k=(self.max_queries // len(queries)))
             context += self._build_context(relevant_passages)
             
         chat = self.model.start_chat(history=[])
         response = chat.send_message([
             self.SYSTEM_PROMPT,
-            f"\n\nTOPICS: {"\n".join(topics)}\n\n{context}" + "\n\n" + f"""
-            **IMPORTANT NOTE** : You are only given a small amount of topics because of limitations in number of tockens that can be sent at once. So remember to stick strictly to the topics
-**ALL TOPICS THAT ARE TO BE COVERED AS A WHOLE BUT NOT CURRENTLY DISCLOSED TO YOU ARE : ** {self.all_topics} \n
-**THIS IS ONLY FOR YOUR REFERENCE FOR YOU TO BETTER STRUCTURE THE NOTES AND ENSURE THERE IS NO REPETATIONS OF ANY TOPICS**
-**DONT ACTUALLY PROVIDE NOTES BASED ON THESE TOPICS AND ONLY GIVE THE ANSWER TO THE BASE PROMPT(even if it is present in all topics only answer the base prompt)\n""" + f"""\n BASE PROMPT:\n {base_prompt}"""
+            f"\n\nTOPICS: {"\n".join(topics)}\n\n{context}" + f"""\n BASE PROMPT:\n {base_prompt}"""
         ])
         results.append(response.text)
         return results
