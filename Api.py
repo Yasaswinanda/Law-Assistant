@@ -5,7 +5,6 @@ import markdown
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
-from weasyprint import HTML
 from processing import PDFProcessor, VectorStore, NotesGenerator
 from document_cache import DocumentCache
 from dotenv import load_dotenv
@@ -13,8 +12,13 @@ from dotenv import load_dotenv
 app = Flask(__name__)
 CORS(app)
 app.config['UPLOAD_FOLDER'] = './uploads'
-app.config['MAX_CONTENT_LENGTH'] = 2000 * 1024 * 1024  # 16MB
+app.config['MAX_CONTENT_LENGTH'] = 2000 * 1024 * 1024  # 2GB
 load_dotenv()
+
+# Global state
+vector_store = VectorStore()
+processed_hashes = set()
+document_cache = DocumentCache(ttl=3600)
 
 # Global state
 vector_store = VectorStore()
@@ -103,126 +107,19 @@ def handle_generation():
                 topics=batch
             )
             results.extend(batch_results)
-        
-        # Process content to remove topic headings
-        processed_contents = []
-        for topic, content in zip(topics, results):
-            lines = content.split('\n')
-            expected_heading = f'# {topic}'
-            
-            # Remove the topic heading if present
-            if lines and lines[0].strip() == expected_heading:
-                processed_content = '\n'.join(lines[1:])
-            else:
-                processed_content = content
-            
-            processed_contents.append(processed_content)
 
-        # Combine all content into a single Markdown document
-        full_markdown = '\n\n'.join(processed_contents)
+        # Combine all generated note pieces into one Markdown string
+        full_md = "\n\n".join(results)
 
-        # Convert Markdown to HTML with enhanced formatting
-        html_content = markdown.markdown(full_markdown, extensions=['extra'])
-        
-        # Add PDF styling
-        styled_html = f"""
-        <html>
-            <head>
-                <meta charset="utf-8">
-                <style>
-                    /* Define A4 page size and minimal margins for printing */
-                    @page {{ size: A4; margin: 1cm; }}
-                    body {{ 
-                        font-family: Georgia, serif;
-                        font-size: 12pt;
-                        line-height: 1.5;
-                        margin: 0;
-                        padding: 1cm;
-                        text-align: justify;
-                        background: #fff;
-                    }}
-                    h1, h2, h3 {{
-                        font-weight: bold;
-                        margin-top: 1em;
-                        margin-bottom: 0.5em;
-                        border-bottom: 1px solid #ccc;
-                        padding-bottom: 0.2em;
-                    }}
-                    h1 {{ color: #003366; }}  /* Deep navy blue */
-                    h2 {{ color: #005B4F; }}  /* Dark teal */
-                    h3 {{ color: #00796B; }}  /* Muted cyan */
-                    pre {{
-                        background-color: #f8f9fa;
-                        padding: 0.5em;
-                        border-radius: 5px;
-                        overflow-x: auto;
-                        font-size: 10pt;
-                        white-space: pre; /* Preserve whitespace exactly */
-                    }}
-                    code {{
-                        background-color: #f8f9fa;
-                        padding: 0.2em 0.4em;
-                        border-radius: 3px;
-                        font-size: 10pt;
-                        white-space: pre-wrap; /* Allow wrapping if needed */
-                    }}
-                    table {{
-                        border-collapse: collapse;
-                        width: 100%;
-                        margin: 0.5em 0;
-                        font-size: 10pt;
-                    }}
-                    th, td {{
-                        border: 1px solid #dfe2e5;
-                        padding: 0.3em;
-                        text-align: left;
-                    }}
-                    ul, ol {{
-                        margin-left: 4px;  /* Minimal indentation */
-                        padding-left: 4px;
-                    }}
-                    li {{
-                        margin-bottom: 4px;
-                    }}
-                    b, strong {{
-                        font-weight: bold;
-                        color: #222; /* Dark gray for contrast */
-                    }}
-                    @media print {{
-                        body {{ margin: 0; padding: 1cm; }}
-                        pre {{ white-space: pre; }} /* Ensure pre remains formatted in print */
-                    }}
-                </style>
-            </head>
-            <body>
-                {html_content}
-            </body>
-        </html>
-        """
-
-
-        # Generate PDF
-        pdf_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
-        HTML(string=styled_html).write_pdf(pdf_file.name)
-        pdf_file.close()
-
-        # Read PDF content and clean up
-        with open(pdf_file.name, 'rb') as f:
-            pdf_data = f.read()
-        os.unlink(pdf_file.name)
-
-        
-
-        # Return PDF response
+        # Return Markdown file as download
         return Response(
-            pdf_data,
-            mimetype='application/pdf',
-            headers={'Content-Disposition': 'attachment; filename="generated_notes.pdf"'}
+            full_md,
+            mimetype='text/markdown',
+            headers={'Content-Disposition': 'attachment; filename="generated_notes.md"'}
         )
-    
     except Exception as e:
-        app.logger.error(f"Generation error: {str(e)}")
-        return jsonify({'error': 'Failed to generate notes'}), 500
+        app.logger.error(f"Gen error: {e}")
+        return jsonify({'error': 'Generation failed'}), 500
 
 @app.route('/reset', methods=['POST'])
 def handle_reset():
