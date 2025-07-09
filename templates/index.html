@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Notes Generator</title>
+    <title>Notes Notes Generator</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -343,7 +343,7 @@
                     
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = 'generated_notes.pdf';
+                    a.download = 'generated_notes.md';
                     document.body.appendChild(a);
                     a.click();
                     
@@ -353,7 +353,7 @@
                     resultsDiv.innerHTML = `
                         <div class="success-message">
                             <i class="fas fa-check-circle"></i>
-                            PDF generated successfully! Check your downloads.
+                            Notes generated successfully! Check your downloads.
                         </div>
                     `;
                 } else {

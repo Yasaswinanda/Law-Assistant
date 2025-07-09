@@ -11,7 +11,6 @@ class QueryBuilder:
         if not api_key:
             raise ValueError("GEMINI_API_KEY_QUERY not set in environment variables.")
         genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel("gemini-2.5-flash")  # Latest recommended version as of 2025
     
     def convert_query(self, text: str):
         text = text.strip()
@@ -64,10 +63,10 @@ class QueryBuilder:
         model = genai.GenerativeModel(
         model_name="gemini-2.5-flash",
         generation_config={
-            "temperature": 0.7,
+            "temperature": 0.65,
             "top_p": 0.95,
             "top_k": 40,
-                "max_output_tokens": 8192,
+            "max_output_tokens": 8192,
             },
         )
         

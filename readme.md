@@ -45,8 +45,8 @@ Ideal for:
 
 2. Create `.env` file:
    ```env
-   FLASK_APP=Api.py
-   GEMINI_API_KEY=your_api_key_here
+   GEMINI_API_KEY_QUERY=
+   GEMINI_API_KEY_GENERATE=
    ```
 
 3. Install dependencies (Not needed if using docker):
@@ -111,8 +111,8 @@ Open `index.html` in your browser to access the frontend.
 Create a `.env` file with these required settings:
 
 ```env
-FLASK_APP=Api.py
-GEMINI_API_KEY=your_api_key_here
+GEMINI_API_KEY_QUERY=
+GEMINI_API_KEY_GENERATE=
 ```
 
 
