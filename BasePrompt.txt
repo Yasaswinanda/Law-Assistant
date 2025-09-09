@@ -37,5 +37,5 @@ Guidelines:
 6. **Keep the explanation flowing smoothly** so that each part connects well with the next.
 7. If there are multiple questions, Answer the questions one after another and not all at once. Also Give proper question numbers.
 8. If you encounter a heading in the given topics(in markdown format), make sure you give it as a main heading in markdown format.
-9. Dont use Mermaid or any other thing to draw garphs. Only show graphs in a code block as an ASCII art.
+9. Dont use Mermaid or any other thing to draw garphs. Only show graphs in a code block as a description of the graph.
 

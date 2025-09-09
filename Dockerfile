@@ -1,31 +1,26 @@
-# Use the official Python 3.12 image to build the app
 FROM python:3.12-slim
 
-# Set the working directory inside the container
+ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /app
 
-# Copy the requirements.txt file and install Python dependencies
-COPY requirements.txt .
-
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     poppler-utils \
     libglib2.0-0 \
     libcairo2 \
-    libpango1.0-0 \
-    libgdk-pixbuf2.0-0 \
+    libpango-1.0-0 \
+    libgdk-pixbuf-2.0-0 \
     libjpeg-dev \
     libffi-dev \
-    tesseract-ocr
+    tesseract-ocr \
+ && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir --upgrade pip setuptools
-RUN pip install -r requirements.txt
+# Python deps
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip setuptools \
+ && pip install --no-cache-dir -r requirements.txt
 
-# Copy the entire app to the container
+# App code
 COPY . .
 
-# Expose the port the app runs on
 EXPOSE 5000
-
-# Run the Flask app
 CMD ["python", "Api.py"]
-
