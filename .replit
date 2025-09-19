@@ -17,19 +17,23 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Frontend"
+args = "React Frontend"
 
 [[workflows.workflow]]
-name = "Frontend"
+name = "React Frontend"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python3 -m http.server 5000 --directory frontend/legal_assistant_frontend"
+args = "cd frontend/legal-assistant-react && npm start"
 waitForPort = 5000
 
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[[ports]]
+localPort = 3000
+externalPort = 3000
 
 [[ports]]
 localPort = 5000
