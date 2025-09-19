@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Legal Assistant</title>
+  <meta name="color-scheme" content="dark light" />
+  
+  <style>
+    :root{
+      --bg:#0b0f14; --panel:#0f1522; --ink:#e7e9ee; --muted:#9aa3b2; --accent:#5aa2ff; --soft:#1a2233;
+      --ok:#56d39b; --warn:#f7c948; --err:#ff6b6b; --border:rgba(255,255,255,.08); --shadow:rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:
+        radial-gradient(1100px 700px at 90% -20%, rgba(90,162,255,.12), transparent 60%),
+        radial-gradient(900px 600px at -10% 110%, rgba(90,162,255,.08), transparent 60%), var(--bg);
+      color:var(--ink); font:15px/1.45 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+    }
+    a{color:var(--ink); text-decoration:none}
+    .shell{max-width:1060px; margin:0 auto; padding:24px}
+    .nav{
+      position:sticky; top:0; z-index:10; backdrop-filter: blur(8px);
+      background:linear-gradient(180deg, rgba(11,15,20,.9), rgba(11,15,20,.55));
+      border-bottom:1px solid var(--border);
+    }
+    .nav .row{display:flex; gap:16px; align-items:center; justify-content:space-between; padding:12px 24px}
+    .brand{display:flex; gap:10px; align-items:center; font-weight:700}
+    .brand .dot{width:10px; height:10px; border-radius:50%; background:var(--accent); box-shadow:0 0 24px var(--accent)}
+    .btn{display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border:1px solid var(--border);
+      background:linear-gradient(180deg, #0f1522, #0b0f14); color:var(--ink); border-radius:12px; cursor:pointer;
+      box-shadow:0 6px 18px -10px var(--shadow); transition:transform .06s ease, border-color .2s ease, background .2s ease}
+    .btn:hover{transform:translateY(-1px); border-color:#20324d}
+    .btn.prime{background:linear-gradient(180deg, #1a2742, #0f1a2d); border-color:#2b4166}
+    .btn.ok{background:linear-gradient(180deg, #113524, #0c2419); border-color:#1f5b3d}
+    .btn.err{background:linear-gradient(180deg, #3a1414, #2a0f0f); border-color:#6b2b2b}
+    .row{display:flex; gap:16px; flex-wrap:wrap}
+    .grid{display:grid; gap:16px}
+    .hero{display:grid; grid-template-columns:1.1fr .9fr; gap:24px; align-items:center; margin-top:24px}
+    .card{
+      background:linear-gradient(180deg, var(--panel), #0c1220);
+      border:1px solid var(--border); border-radius:16px; padding:18px;
+      box-shadow:0 12px 40px -24px var(--shadow);
+    }
+    .muted{color:var(--muted)}
+    input, select, textarea{
+      width:100%; padding:12px 12px; border-radius:12px; background:#0c1220; color:var(--ink);
+      border:1px solid var(--border); outline:none; transition:border-color .2s ease;
+    }
+    input:focus, select:focus, textarea:focus{border-color:#294368}
+    .field{display:grid; gap:8px}
+    .pill{font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid var(--border); background:#0c1220}
+    .list{display:grid; gap:12px}
+    .item{display:flex; gap:12px; align-items:center; justify-content:space-between; padding:14px; border:1px solid var(--border); border-radius:12px; background:#0c111b}
+    .badge{font-size:12px; padding:4px 8px; border-radius:8px; background:#0f1828; border:1px solid #24334b}
+    .right{margin-left:auto}
+    .footnote{font-size:12px; color:var(--muted)}
+    .spacer{height:8px}
+    .hidden{display:none}
+    .divider{height:1px; background:var(--border); margin:10px 0}
+    .toast{
+      position:fixed; right:16px; bottom:16px; padding:12px 16px; border-radius:12px; background:#0c111b; border:1px solid var(--border);
+      box-shadow:0 10px 30px -20px var(--shadow); color:var(--ink); z-index:9999; display:none;
+    }
+    .chat{
+      height:62vh; overflow:auto; padding:12px; border:1px solid var(--border); border-radius:12px; background:#0c111b
+    }
+    .bubble{max-width:74%; padding:10px 12px; margin:8px 0; border-radius:14px; line-height:1.4}
+    .bubble.me{background:#15223a; border:1px solid #2b4166; margin-left:auto}
+    .bubble.other{background:#112016; border:1px solid #274a35}
+    .bubble.ai{background:#161a24; border:1px solid #2b3244}
+    .toolbar{display:flex; gap:10px; align-items:center}
+    .toolbar input[type=file]{display:none}
+    .file-pill{font-size:12px; padding:6px 10px; border:1px dashed #294368; border-radius:999px; background:#10182a}
+    .tabs{display:flex; gap:8px; margin-bottom:8px}
+    .tabs .btn.active{border-color:#2b4166; background:#122039}
+    .kv{display:grid; grid-template-columns:140px 1fr; gap:8px}
+    .center{display:flex; align-items:center; justify-content:center}
+  </style>
+
+</head>
+<body>
+  <header class="nav">
+    <div class="row">
+      <div class="brand"><span class="dot"></span> Legal Assistant</div>
+      <div class="row">
+        <a class="btn" href="auth.html">Sign In</a>
+        <a class="btn prime" href="auth.html#signup">Create Account</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="hero">
+      <div class="card">
+        <h1 style="margin:0 0 8px 0;">Get legal help without the hassle</h1>
+        <p class="muted">Ask questions to the built‑in AI, find a nearby lawyer, and keep all your conversations in one clean place. No tech knobs. No jargon. Just answers.</p>
+        <div class="spacer"></div>
+        <div class="row">
+          <a class="btn prime" href="auth.html">Get Started</a>
+          <a class="btn" href="auth.html#signup">I'm new here</a>
+        </div>
+        <div class="spacer"></div>
+        <div class="row">
+          <span class="pill">Secure accounts</span>
+          <span class="pill">Chat with real lawyers</span>
+          <span class="pill">Upload PDFs</span>
+          <span class="pill">Location‑aware search</span>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="card">
+          <h3 style="margin:0 0 6px 0">How it works</h3>
+          <div class="divider"></div>
+          <ol>
+            <li>Sign up as a <b>Client</b> or <b>Lawyer</b>.</li>
+            <li>Clients can search for lawyers nearby and start a chat.</li>
+            <li>Use the AI Assistant to summarize documents or draft questions.</li>
+            <li>Everything stays tidy and easy to find.</li>
+          </ol>
+        </div>
+        <div class="card">
+          <h3 style="margin:0 0 6px 0">Privacy first</h3>
+          <div class="divider"></div>
+          <p class="muted">You control your data. Tokens are stored locally on your device and sent securely for each request.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chat · Legal Assistant</title>
+  <meta name="color-scheme" content="dark light" />
+  <style>
+    :root{
+      --bg:#0b0f14; --panel:#0f1522; --ink:#e7e9ee; --muted:#9aa3b2; --accent:#5aa2ff; --soft:#1a2233;
+      --ok:#56d39b; --warn:#f7c948; --err:#ff6b6b; --border:rgba(255,255,255,.08); --shadow:rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:
+        radial-gradient(1100px 700px at 90% -20%, rgba(90,162,255,.12), transparent 60%),
+        radial-gradient(900px 600px at -10% 110%, rgba(90,162,255,.08), transparent 60%), var(--bg);
+      color:var(--ink); font:15px/1.45 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+    }
+    a{color:var(--ink); text-decoration:none}
+    .shell{max-width:1180px; margin:0 auto; padding:24px}
+    .nav{
+      position:sticky; top:0; z-index:10; backdrop-filter: blur(8px);
+      background:linear-gradient(180deg, rgba(11,15,20,.9), rgba(11,15,20,.55));
+      border-bottom:1px solid var(--border);
+    }
+    .nav .row{display:flex; gap:16px; align-items:center; justify-content:space-between; padding:12px 24px}
+    .brand{display:flex; gap:10px; align-items:center; font-weight:700}
+    .brand .dot{width:10px; height:10px; border-radius:50%; background:var(--accent); box-shadow:0 0 24px var(--accent)}
+    .btn{display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border:1px solid var(--border);
+      background:linear-gradient(180deg, #0f1522, #0b0f14); color:var(--ink); border-radius:12px; cursor:pointer;
+      box-shadow:0 6px 18px -10px var(--shadow); transition:transform .06s ease, border-color .2s ease, background .2s ease}
+    .btn:hover{transform:translateY(-1px); border-color:#20324d}
+    .btn.prime{background:linear-gradient(180deg, #1a2742, #0f1a2d); border-color:#2b4166}
+    .row{display:flex; gap:16px; flex-wrap:wrap}
+    .grid{display:grid; gap:16px}
+    .card{
+      background:linear-gradient(180deg, var(--panel), #0c1220);
+      border:1px solid var(--border); border-radius:16px; padding:18px;
+      box-shadow:0 12px 40px -24px var(--shadow);
+    }
+    .muted{color:var(--muted)}
+    input{width:100%; padding:12px; border-radius:12px; background:#0c1220; color:var(--ink); border:1px solid var(--border); outline:none}
+    input:focus{border-color:#294368}
+    .hidden{display:none}
+    .divider{height:1px; background:var(--border); margin:10px 0}
+    .toast{
+      position:fixed; right:16px; bottom:16px; padding:12px 16px; border-radius:12px; background:#0c111b; border:1px solid var(--border);
+      box-shadow:0 10px 30px -20px var(--shadow); color:var(--ink); z-index:9999; display:none;
+    }
+    .chat{height:62vh; overflow:auto; padding:12px; border:1px solid var(--border); border-radius:12px; background:#0c111b}
+    .bubble{max-width:74%; padding:10px 12px; margin:8px 0; border-radius:14px; line-height:1.4; word-wrap:break-word; overflow-wrap:anywhere}
+    .bubble.me{background:#15223a; border:1px solid #2b4166; margin-left:auto}
+    .bubble.other{background:#112016; border:1px solid #274a35}
+    .bubble.ai{background:#161a24; border:1px solid #2b3244}
+    .toolbar{display:flex; gap:10px; align-items:center}
+    .toolbar input[type=file]{display:none}
+    .file-pill{font-size:12px; padding:6px 10px; border:1px dashed #294368; border-radius:999px; background:#10182a; transition:border-color .2s ease, background .2s ease}
+    .tabs{display:flex; gap:8px; margin-bottom:8px}
+    .tabs .btn.active{border-color:#2b4166; background:#122039}
+    .kv{display:grid; grid-template-columns:140px 1fr; gap:8px}
+
+    /* Layout */
+    .layout{display:grid; grid-template-columns:320px 1fr 360px; gap:16px; align-items:start}
+
+    /* Left: Conversations list (fixed width, boxed items) */
+    aside.left{width:320px}
+    .convos{max-height:60vh; overflow:auto; display:flex; flex-direction:column; gap:10px; padding-right:4px}
+    .convo{
+      display:grid; grid-template-columns:1fr auto; gap:8px;
+      padding:10px 12px; border:1px solid var(--border); border-radius:12px;
+      background:#0c111b; cursor:pointer; transition:border-color .15s ease, transform .06s ease;
+    }
+    .convo:hover{border-color:#2b4166; transform:translateY(-1px)}
+    .convo.active{border-color:#2b4166; background:#122039}
+    .convo .name{font-weight:600}
+    .convo .meta{font-size:12px; color:var(--muted)}
+    .badge{font-size:12px; padding:4px 8px; border-radius:8px; background:#0f1828; border:1px solid #24334b; height:fit-content}
+
+    /* Responsive */
+    @media (max-width: 980px){
+      .layout{grid-template-columns:1fr}
+      aside.left, aside.right{width:auto}
+    }
+
+    /* ===== Markdown rendering styles (AI bubbles only) ===== */
+    .bubble.ai a { text-decoration: underline; }
+    .bubble.ai h1,.bubble.ai h2,.bubble.ai h3,.bubble.ai h4,.bubble.ai h5,.bubble.ai h6{margin:8px 0 4px 0; line-height:1.2}
+    .bubble.ai h1{font-size:1.4rem} .bubble.ai h2{font-size:1.25rem} .bubble.ai h3{font-size:1.15rem}
+    .bubble.ai ul,.bubble.ai ol{margin:8px 0 8px 22px}
+    .bubble.ai li{margin:4px 0}
+    .bubble.ai blockquote{margin:8px 0; padding:8px 12px; border-left:3px solid #2b3244; background:#111521; border-radius:8px}
+    .bubble.ai code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace; padding:2px 5px; border-radius:6px; background:#0d1321; border:1px solid #2b3244}
+    .bubble.ai pre{background:#0d1321; border:1px solid #2b3244; padding:10px; border-radius:10px; overflow:auto}
+    .bubble.ai pre code{border:none; padding:0; background:transparent}
+    .bubble.ai p{margin:6px 0}
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="row">
+      <div class="brand"><span class="dot"></span> Legal Assistant</div>
+      <div class="row">
+        <a class="btn" href="dashboard.html">Discover</a>
+        <a class="btn" href="profile.html">Profile</a>
+        <button class="btn" id="logoutBtn">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <div class="layout">
+      <!-- Left: Conversations -->
+      <aside class="card left">
+        <div class="row" style="justify-content:space-between; align-items:center">
+          <h3 style="margin:0">Conversations</h3>
+          <a id="newConv" href="dashboard.html" class="btn">New…</a>
+        </div>
+        <div class="divider"></div>
+        <div id="convoList" class="convos"></div>
+        <div class="divider"></div>
+        <div class="muted" style="font-size:12px">People you’ve messaged. Updates automatically.</div>
+      </aside>
+
+      <!-- Middle: Chat panes -->
+      <section class="card">
+        <div class="tabs">
+          <button id="tabAI" class="btn active">AI Assistant</button>
+          <button id="tabLawyer" class="btn">Chat with Person</button>
+        </div>
+
+        <!-- AI Assistant -->
+        <div id="aiPane">
+          <div id="aiChat" class="chat"></div>
+          <div class="spacer"></div>
+          <form id="aiForm" class="grid" style="grid-template-columns:1fr auto; gap:8px">
+            <input id="aiInput" placeholder="Ask a question…"/>
+            <div class="toolbar">
+              <label class="file-pill"><input id="pdfFile" type="file" accept="application/pdf"/>Attach PDF</label>
+              <button class="btn prime" id="aiSend">Send</button>
+            </div>
+          </form>
+          <div class="muted" style="font-size:12px">Tip: You can paste text instead of uploading a PDF.</div>
+        </div>
+
+        <!-- Direct messaging -->
+        <div id="lawyerPane" class="hidden">
+          <div class="grid" style="grid-template-columns:1fr auto; gap:8px">
+            <div class="field"><label>Talking with User ID</label><input id="withUserId" placeholder="e.g., 7"/></div>
+            <div class="row" style="align-items:end"><button id="loadThread" class="btn">Open Thread</button></div>
+          </div>
+          <div id="lawyerChat" class="chat"></div>
+          <div class="spacer"></div>
+          <form id="lawyerForm" class="grid" style="grid-template-columns:1fr auto; gap:8px">
+            <input id="lawyerInput" placeholder="Type a message…"/>
+            <button class="btn prime" id="lawyerSend">Send</button>
+          </form>
+          <div class="muted" style="font-size:12px">If you came from Discover → Connect, the ID is prefilled.</div>
+        </div>
+      </section>
+
+      <!-- Right: Session info -->
+      <aside class="card right">
+        <h3 style="margin:0 0 6px 0">Session</h3>
+        <div class="divider"></div>
+        <div class="kv">
+          <div>Logged in as</div><div id="who"></div>
+          <div>Role</div><div id="role"></div>
+          <div>User ID</div><div id="uid"></div>
+          <div>AI Session</div><div id="sid"></div>
+        </div>
+        <div class="divider"></div>
+        <div class="list">
+          <a class="item" href="dashboard.html"><b>Back to Discover</b><span class="badge">Find</span></a>
+          <a class="item" href="profile.html"><b>Update Location</b><span class="badge">Profile</span></a>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const API_BASE = location.protocol === 'file:' ? 'http://localhost:5000' : '';
+    const toast = (msg, kind='') => { const t=document.getElementById('toast'); t.textContent=msg; t.style.display='block'; t.style.borderColor = kind==='err' ? '#6b2b2b' : '#2b4166'; setTimeout(()=>t.style.display='none', 2500); };
+
+    const token = localStorage.getItem('token'); const user = JSON.parse(localStorage.getItem('user') || 'null');
+    if(!token || !user) location.href = 'auth.html';
+    document.getElementById('logoutBtn').onclick = ()=>{ localStorage.removeItem('token'); localStorage.removeItem('user'); location.href='auth.html'; };
+
+    // Session info
+    const sidKey = 'llm_session_id';
+    let sid = localStorage.getItem(sidKey) || (Math.random().toString(36).slice(2) + Date.now().toString(36));
+    localStorage.setItem(sidKey, sid);
+    document.getElementById('who').textContent = user.email;
+    document.getElementById('role').textContent = user.role;
+    document.getElementById('uid').textContent = user.id;
+    document.getElementById('sid').textContent = sid;
+
+    // Tabs
+    const aiPane = document.getElementById('aiPane'), lawyerPane = document.getElementById('lawyerPane');
+    const tabAI = document.getElementById('tabAI'), tabLawyer = document.getElementById('tabLawyer');
+    const activate = (k) => {
+      if(k==='ai'){ tabAI.classList.add('active'); tabLawyer.classList.remove('active'); aiPane.classList.remove('hidden'); lawyerPane.classList.add('hidden'); }
+      else { tabLawyer.classList.add('active'); tabAI.classList.remove('active'); lawyerPane.classList.remove('hidden'); aiPane.classList.add('hidden'); }
+    };
+    tabAI.onclick = ()=>activate('ai'); tabLawyer.onclick = ()=>activate('lawyer');
+
+    // Headers
+    const headers = { 'Authorization':'Bearer ' + token };
+
+    // Left list: conversations from backend + highlighting + polling
+    const convoListEl = document.getElementById('convoList');
+    const withUserIdInput = document.getElementById('withUserId');
+    const newConvBtn = document.getElementById('newConv');
+    if (user.role === 'lawyer') newConvBtn.classList.add('hidden');
+
+    let convoPollTimer = null;
+    let convos = []; // [{id, role, label, last_at}]
+
+    async function loadPartners(){
+      try{
+        const r = await fetch(API_BASE + '/messages/partners?limit=200', { headers });
+        const j = await r.json();
+        if(!r.ok) throw new Error(j.error || 'Failed to load partners');
+        convos = j.partners.map(p => ({ id: p.id, role: p.role, label: p.email, last_at: p.last_at }));
+        renderConvos();
+      }catch(e){ /* silent to avoid toast noise when idle */ }
+    }
+
+    function renderConvos(){
+      convoListEl.innerHTML = '';
+      if (!convos.length) {
+        const empty = document.createElement('div');
+        empty.className = 'muted';
+        empty.textContent = user.role === 'client' ? 'No conversations yet. Find a lawyer from Discover.' : 'No conversations yet. Clients will appear here after messaging.';
+        convoListEl.appendChild(empty);
+        return;
+      }
+      const activeId = parseInt(withUserIdInput.value || '0', 10);
+      for (const c of convos) {
+        const el = document.createElement('div');
+        el.className = 'convo' + (activeId === c.id ? ' active' : '');
+        const label = c.label || ((c.role==='lawyer') ? `Lawyer #${c.id}` : `Client #${c.id}`);
+        const when = c.last_at ? new Date(c.last_at).toLocaleString() : '';
+        el.innerHTML = `
+          <div>
+            <div class="name">${label}</div>
+            <div class="meta">${c.role==='lawyer'?'Lawyer':'Client'} ${when ? '· ' + when : ''}</div>
+          </div>
+          <span class="badge">Open</span>`;
+        el.onclick = ()=>{
+          withUserIdInput.value = c.id;
+          activate('lawyer');
+          loadThreadInit();
+          // highlight now for snappy feel
+          [...convoListEl.children].forEach(child => child.classList && child.classList.remove('active'));
+          el.classList.add('active');
+        };
+        convoListEl.appendChild(el);
+      }
+    }
+
+    function addOrBumpConvo(otherId){
+      // Ensure a partner appears immediately after you interact, even before the poll returns
+      const roleOpp = user.role === 'client' ? 'lawyer' : 'client';
+      const i = convos.findIndex(c => c.id === otherId);
+      if (i >= 0) {
+        const item = convos.splice(i,1)[0];
+        convos.unshift(item);
+      } else {
+        convos.unshift({ id: otherId, role: roleOpp, label: (roleOpp==='lawyer'?(`Lawyer #${otherId}`):(`Client #${otherId}`)), last_at: new Date().toISOString() });
+      }
+      renderConvos();
+    }
+
+    // Preselect from query param
+    const params = new URLSearchParams(location.search);
+    const withIdParam = params.get('with_user_id');
+    if (withIdParam) {
+      withUserIdInput.value = withIdParam;
+      activate('lawyer');
+    }
+
+    // Kick off
+    loadPartners();
+    convoPollTimer = setInterval(loadPartners, 10000);
+
+    // ---------- AI Assistant ----------
+    const aiChat = document.getElementById('aiChat');
+    const aiInput = document.getElementById('aiInput');
+    const pdfInput = document.getElementById('pdfFile');
+    const aiForm = document.getElementById('aiForm');
+
+    // ===== Markdown renderer (safe & lightweight) =====
+    function escapeHtml(s){
+      return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+    function renderMarkdown(md){
+      if(!md) return '';
+      let text = md.replace(/\r\n/g, '\n');
+
+      // Extract fenced code blocks first
+      const blocks = [];
+      text = text.replace(/```([\s\S]*?)```/g, (_, code) => {
+        const idx = blocks.push(escapeHtml(code)) - 1;
+        return `§§CODE${idx}§§`;
+      });
+
+      // Escape remaining HTML
+      text = escapeHtml(text);
+
+      // Blockquotes
+      text = text.replace(/^&gt;\s?(.*)$/gm, '<blockquote>$1</blockquote>');
+
+      // Headings
+      text = text
+        .replace(/^######\s?(.*)$/gm, '<h6>$1</h6>')
+        .replace(/^#####\s?(.*)$/gm, '<h5>$1</h5>')
+        .replace(/^####\s?(.*)$/gm, '<h4>$1</h4>')
+        .replace(/^###\s?(.*)$/gm, '<h3>$1</h3>')
+        .replace(/^##\s?(.*)$/gm, '<h2>$1</h2>')
+        .replace(/^#\s?(.*)$/gm, '<h1>$1</h1>');
+
+      // Lists (unordered)
+      text = text.replace(/(?:^|\n)(?:\s*[-*]\s+.+\n?)+/g, (m) => {
+        const items = m.trim().split('\n').map(l => l.replace(/^\s*[-*]\s+/, '').trim()).filter(Boolean);
+        return items.length ? `<ul>${items.map(i=>`<li>${i}</li>`).join('')}</ul>\n` : m;
+      });
+      // Lists (ordered)
+      text = text.replace(/(?:^|\n)(?:\s*\d+\.\s+.+\n?)+/g, (m) => {
+        const items = m.trim().split('\n').map(l => l.replace(/^\s*\d+\.\s+/, '').trim()).filter(Boolean);
+        return items.length ? `<ol>${items.map(i=>`<li>${i}</li>`).join('')}</ol>\n` : m;
+      });
+
+      // Bold, italics, inline code, links
+      text = text
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/(?<!\*)\*(?!\s)(.+?)(?<!\s)\*(?!\*)/g, '<em>$1</em>') // simple italics
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+
+      // Paragraphs / line breaks
+      text = text.split(/\n{2,}/).map(p => {
+        if (/^\s*<(h\d|ul|ol|blockquote|pre)/.test(p)) return p;
+        return `<p>${p.replace(/\n/g, '<br/>')}</p>`;
+      }).join('\n');
+
+      // Restore code blocks
+      text = text.replace(/§§CODE(\d+)§§/g, (_, i) => `<pre><code>${blocks[+i] || ''}</code></pre>`);
+
+      return text;
+    }
+
+    function addBubble(container, text, who='me'){
+      const div = document.createElement('div');
+      div.className = 'bubble ' + who;
+      if (who === 'ai') {
+        div.innerHTML = renderMarkdown(text);
+      } else {
+        div.textContent = text;
+      }
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    // ===== PDF attach indicator (no layout changes) =====
+    const pdfLabel = pdfInput ? pdfInput.parentElement : null;
+    function resetPdfLabel(){
+      if(!pdfLabel) return;
+      // Restore the label's trailing text node to "Attach PDF"
+      const nodes = Array.from(pdfLabel.childNodes);
+      const textNode = nodes.find(n => n.nodeType === Node.TEXT_NODE);
+      if (textNode) textNode.textContent = 'Attach PDF';
+      pdfLabel.style.borderColor = '#294368';
+      pdfLabel.style.background = '#10182a';
+      pdfLabel.title = '';
+    }
+    if (pdfInput && pdfLabel){
+      resetPdfLabel();
+      pdfInput.addEventListener('change', ()=>{
+        const f = pdfInput.files[0];
+        if (f){
+          const size = f.size >= 1048576 ? (f.size/1048576).toFixed(2)+' MB' : Math.max(1, Math.round(f.size/1024))+' KB';
+          const nodes = Array.from(pdfLabel.childNodes);
+          const textNode = nodes.find(n => n.nodeType === Node.TEXT_NODE);
+          if (textNode) textNode.textContent = ` ${f.name} (${size})`;
+          else pdfLabel.appendChild(document.createTextNode(` ${f.name} (${size})`));
+          pdfLabel.style.borderColor = '#2b4166';
+          pdfLabel.style.background = '#101c2e';
+          pdfLabel.title = f.name;
+          toast('PDF attached: ' + f.name);
+        } else {
+          resetPdfLabel();
+        }
+      });
+      // Quick clear: double-click the pill to remove file
+      pdfLabel.addEventListener('dblclick', ()=>{
+        if (!pdfInput.files.length) return;
+        pdfInput.value = '';
+        pdfInput.dispatchEvent(new Event('change'));
+        toast('PDF removed');
+      });
+    }
+
+    aiForm.addEventListener('submit', (e)=>e.preventDefault());
+    document.getElementById('aiSend').onclick = async (e) => {
+      e.preventDefault();
+      const msg = aiInput.value.trim(); if(!msg) return;
+      addBubble(aiChat, msg, 'me'); aiInput.value='';
+
+      // Try SSE
+      try{
+        const r = await fetch(API_BASE + '/chat/stream', { method:'POST', headers: {...headers, 'content-type':'application/json'}, body: JSON.stringify({ message: msg, session_id: sid }) });
+        if(r.ok && r.headers.get('content-type')?.includes('text/event-stream')) {
+          let acc = '';
+          const aiDiv = document.createElement('div'); aiDiv.className='bubble ai'; aiDiv.innerHTML='';
+          aiChat.appendChild(aiDiv); aiChat.scrollTop = aiChat.scrollHeight;
+          const reader = r.body.getReader(); const decoder = new TextDecoder();
+          let mdAgg = '';
+          while(true){
+            const {value, done} = await reader.read(); if(done) break;
+            const chunk = decoder.decode(value, {stream:true});
+            acc += chunk;
+            const parts = acc.split('\n\n');
+            acc = parts.pop();
+            for(const part of parts){
+              const line = part.split('\n').find(l=>l.startsWith('data: ')) || '';
+              const data = line.slice(6);
+              try {
+                const json = JSON.parse(data);
+                if(json.delta) mdAgg += json.delta;
+                else if(json.text) mdAgg += json.text;
+                else mdAgg += data;
+              } catch(_){
+                mdAgg += data;
+              }
+              aiDiv.innerHTML = renderMarkdown(mdAgg);
+              aiChat.scrollTop = aiChat.scrollHeight;
+            }
+          }
+          return;
+        }
+      }catch(_){}
+      // Fallback: multipart /chat (supports PDF)
+      try {
+        const form = new FormData();
+        form.append('message', msg);
+        form.append('session_id', sid);
+        if(pdfInput && pdfInput.files[0]) form.append('user_pdf', pdfInput.files[0]);
+        const r2 = await fetch(API_BASE + '/chat', { method:'POST', headers, body: form });
+        const j = await r2.json(); if(!r2.ok) throw new Error(j.error || 'Chat failed');
+        const text = j.answer || j.output || JSON.stringify(j);
+        addBubble(aiChat, text, 'ai');
+      } catch(e) { toast(e.message, 'err'); }
+    };
+
+    // ---------- Direct Messaging ----------
+    const lawyerChat = document.getElementById('lawyerChat');
+    const lawyerInput = document.getElementById('lawyerInput');
+    const lawyerForm = document.getElementById('lawyerForm');
+    const loadThreadBtn = document.getElementById('loadThread');
+    lawyerForm.addEventListener('submit', (e)=>e.preventDefault());
+
+    let lastMsgId = null; let threadTimer = null;
+
+    function renderThread(msgs){
+      lawyerChat.innerHTML = '';
+      for(const m of msgs){
+        const who = m.sender_id === user.id ? 'me' : 'other';
+        const when = new Date(m.created_at).toLocaleString();
+        addBubble(lawyerChat, `[${when}] ${m.message}`, who);
+        lastMsgId = m.id;
+      }
+    }
+
+    async function loadThread(cursor=''){
+      const other_id = parseInt(withUserIdInput.value, 10);
+      if(!other_id) return toast('Enter the other user ID', 'err');
+      const params = new URLSearchParams({ with_user_id: other_id, limit: 100 });
+      if(cursor==='after' && lastMsgId) params.set('after_id', lastMsgId);
+      try{
+        const r = await fetch(API_BASE + '/messages/thread?' + params.toString(), { headers });
+        const j = await r.json(); if(!r.ok) throw new Error(j.error || 'Failed to load thread');
+        if(cursor==='after' && j.messages.length){
+          for(const m of j.messages){
+            if(m.id <= lastMsgId) continue;
+            const who = m.sender_id === user.id ? 'me' : 'other';
+            const when = new Date(m.created_at).toLocaleString();
+            addBubble(lawyerChat, `[${when}] ${m.message}`, who);
+            lastMsgId = m.id;
+          }
+        }else{
+          renderThread(j.messages);
+          // make sure sidebar includes this partner immediately
+          addOrBumpConvo(other_id);
+        }
+      }catch(e){ toast(e.message, 'err'); }
+    }
+
+    function loadThreadInit(){
+      clearInterval(threadTimer); lastMsgId = null; loadThread(); threadTimer = setInterval(()=>loadThread('after'), 3000);
+    }
+
+    loadThreadBtn.onclick = loadThreadInit;
+    document.getElementById('lawyerSend').onclick = async (e)=>{
+      e.preventDefault();
+      const other_id = parseInt(withUserIdInput.value, 10);
+      const message = lawyerInput.value.trim(); if(!other_id || !message) return;
+      try{
+        const r = await fetch(API_BASE + '/messages/send', { method:'POST', headers: {...headers, 'content-type':'application/json'}, body: JSON.stringify({ to_user_id: other_id, message }) });
+        const j = await r.json(); if(!r.ok) throw new Error(j.error || 'Send failed');
+        lawyerInput.value='';
+        addOrBumpConvo(other_id); // instant update
+        await loadThread('after');
+      }catch(e){ toast(e.message, 'err'); }
+    };
+  </script>
+</body>
+</html>
