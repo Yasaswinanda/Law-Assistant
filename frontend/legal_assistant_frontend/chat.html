@@ -198,26 +198,40 @@
     document.getElementById('uid').textContent = user.id;
     document.getElementById('sid').textContent = sid;
 
-    // Tabs
+    // Tabs + pane state
     const aiPane = document.getElementById('aiPane'), lawyerPane = document.getElementById('lawyerPane');
     const tabAI = document.getElementById('tabAI'), tabLawyer = document.getElementById('tabLawyer');
+    let currentPane = localStorage.getItem('lastPane') || 'ai';
     const activate = (k) => {
-      if(k==='ai'){ tabAI.classList.add('active'); tabLawyer.classList.remove('active'); aiPane.classList.remove('hidden'); lawyerPane.classList.add('hidden'); }
-      else { tabLawyer.classList.add('active'); tabAI.classList.remove('active'); lawyerPane.classList.remove('hidden'); aiPane.classList.add('hidden'); }
+      currentPane = k;
+      localStorage.setItem('lastPane', k);
+      if(k==='ai'){
+        tabAI.classList.add('active'); tabLawyer.classList.remove('active');
+        aiPane.classList.remove('hidden'); lawyerPane.classList.add('hidden');
+      } else {
+        tabLawyer.classList.add('active'); tabAI.classList.remove('active');
+        lawyerPane.classList.remove('hidden'); aiPane.classList.add('hidden');
+      }
     };
-    tabAI.onclick = ()=>activate('ai'); tabLawyer.onclick = ()=>activate('lawyer');
+    tabAI.onclick = ()=>activate('ai'); tabLawyer.onclick = ()=>{ activate('lawyer'); /* ensure left lists are ready for chatting */ if(!convos.length && user.role==='client'){ loadLawyers(); } };
+
+    // If a query param preselects a human thread, honor that; else restore last pane
+    const params = new URLSearchParams(location.search);
+    const withIdParam = params.get('with_user_id');
 
     // Headers
     const headers = { 'Authorization':'Bearer ' + token };
 
-    // Left list: conversations from backend + highlighting + polling
+    // Left list: conversations from backend + highlighting + polling (and fallback to lawyers list)
     const convoListEl = document.getElementById('convoList');
     const withUserIdInput = document.getElementById('withUserId');
     const newConvBtn = document.getElementById('newConv');
     if (user.role === 'lawyer') newConvBtn.classList.add('hidden');
 
     let convoPollTimer = null;
-    let convos = []; // [{id, role, label, last_at}]
+    let convos = [];      // [{id, role, label, last_at}]
+    let lawyers = [];     // from /lawyers
+    let lawyersLoaded = false;
 
     async function loadPartners(){
       try{
@@ -231,13 +245,29 @@
 
     function renderConvos(){
       convoListEl.innerHTML = '';
-      if (!convos.length) {
+      // If no prior conversations, and the user is a client, show lawyers for first-click start
+      if (!convos.length && user.role === 'client'){
+        // Kick lawyer fetch (only once) and render any cached results
+        if (!lawyersLoaded) loadLawyers();
+        if (lawyers.length){
+          renderLawyerCards(lawyers);
+        }else{
+          const empty = document.createElement('div');
+          empty.className = 'muted';
+          empty.textContent = 'No conversations yet. Pick a lawyer to start chatting.';
+          convoListEl.appendChild(empty);
+        }
+        return;
+      }
+
+      if (!convos.length){
         const empty = document.createElement('div');
         empty.className = 'muted';
         empty.textContent = user.role === 'client' ? 'No conversations yet. Find a lawyer from Discover.' : 'No conversations yet. Clients will appear here after messaging.';
         convoListEl.appendChild(empty);
         return;
       }
+
       const activeId = parseInt(withUserIdInput.value || '0', 10);
       for (const c of convos) {
         const el = document.createElement('div');
@@ -262,6 +292,55 @@
       }
     }
 
+    function renderLawyerCards(list){
+      convoListEl.innerHTML = '';
+      for (const L of list){
+        const el = document.createElement('div');
+        el.className = 'convo';
+        const dist = (L.distance_km != null) ? ` · ${L.distance_km} km` : '';
+        const loc = L.location_name ? ` · ${L.location_name}` : '';
+        const label = L.email || `Lawyer #${L.id}`;
+        el.innerHTML = `
+          <div>
+            <div class="name">${label}</div>
+            <div class="meta">Lawyer${loc}${dist}</div>
+          </div>
+          <span class="badge">Open</span>`;
+        el.onclick = ()=>{
+          withUserIdInput.value = L.id;
+          addOrBumpConvo(L.id);            // make it appear immediately in the list
+          activate('lawyer');               // stay on the human chat pane
+          loadThreadInit();                 // open (empty ok) and start polling
+          // highlight selection
+          [...convoListEl.children].forEach(child => child.classList && child.classList.remove('active'));
+          el.classList.add('active');
+        };
+        convoListEl.appendChild(el);
+      }
+    }
+
+    async function loadLawyers(){
+      if (user.role !== 'client') return;
+      try{
+        const r = await fetch(API_BASE + '/lawyers?limit=50', { headers });
+        const j = await r.json();
+        if(!r.ok) throw new Error(j.error || 'Failed to load lawyers');
+        lawyers = j.lawyers || [];
+        lawyersLoaded = true;
+        if (!convos.length) renderLawyerCards(lawyers);
+      }catch(e){
+        lawyersLoaded = true;
+        // show a soft message only if nothing else is displayed
+        if (!convos.length){
+          convoListEl.innerHTML = '';
+          const empty = document.createElement('div');
+          empty.className = 'muted';
+          empty.textContent = 'Could not load lawyers right now.';
+          convoListEl.appendChild(empty);
+        }
+      }
+    }
+
     function addOrBumpConvo(otherId){
       // Ensure a partner appears immediately after you interact, even before the poll returns
       const roleOpp = user.role === 'client' ? 'lawyer' : 'client';
@@ -275,15 +354,15 @@
       renderConvos();
     }
 
-    // Preselect from query param
-    const params = new URLSearchParams(location.search);
-    const withIdParam = params.get('with_user_id');
+    // Preselect from query param (if present, go straight to human chat)
     if (withIdParam) {
       withUserIdInput.value = withIdParam;
       activate('lawyer');
+    } else {
+      activate(currentPane); // restore last pane choice
     }
 
-    // Kick off
+    // Kick off polling
     loadPartners();
     convoPollTimer = setInterval(loadPartners, 10000);
 
@@ -337,7 +416,7 @@
       // Bold, italics, inline code, links
       text = text
         .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/(?<!\*)\*(?!\s)(.+?)(?<!\s)\*(?!\*)/g, '<em>$1</em>') // simple italics
+        .replace(/(?<!\*)\*(?!\s)(.+?)(?<!\s)\*(?!\*)/g, '<em>$1</em>')
         .replace(/`([^`]+)`/g, '<code>$1</code>')
         .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
 
@@ -369,7 +448,6 @@
     const pdfLabel = pdfInput ? pdfInput.parentElement : null;
     function resetPdfLabel(){
       if(!pdfLabel) return;
-      // Restore the label's trailing text node to "Attach PDF"
       const nodes = Array.from(pdfLabel.childNodes);
       const textNode = nodes.find(n => n.nodeType === Node.TEXT_NODE);
       if (textNode) textNode.textContent = 'Attach PDF';
@@ -395,7 +473,6 @@
           resetPdfLabel();
         }
       });
-      // Quick clear: double-click the pill to remove file
       pdfLabel.addEventListener('dblclick', ()=>{
         if (!pdfInput.files.length) return;
         pdfInput.value = '';
@@ -504,6 +581,7 @@
     }
 
     loadThreadBtn.onclick = loadThreadInit;
+
     document.getElementById('lawyerSend').onclick = async (e)=>{
       e.preventDefault();
       const other_id = parseInt(withUserIdInput.value, 10);

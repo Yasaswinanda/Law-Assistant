@@ -16,6 +16,7 @@ from processing import PDFProcessor
 from retrieval import load_vector_store_or_raise
 from agents import AgentOrchestrator
 
+
 # ================== Config & Boot ==================
 load_dotenv()
 
@@ -283,24 +284,52 @@ def login():
 def me():
     return jsonify({"user": g.user})
 
+@app.get("/me/profile")
+@jwt_required
+def me_profile():
+    """Return the full user row safely (no writes)."""
+    db = get_db()
+    row = db.execute("SELECT * FROM users WHERE id=?", (g.user["id"],)).fetchone()
+    if not row:
+        return jsonify({"error": "user not found"}), 404
+    return jsonify({"user": row_to_user_dict(row)})
+
+
 @app.patch("/me/location")
 @jwt_required
 def update_location():
-    """Update location_name and/or coordinates for the current user."""
+    """
+    Partially update location_name and/or coordinates for the current user.
+    Only keys present in the JSON body are updated. Omitted keys are left unchanged.
+    """
     try:
-        data = request.get_json(force=True)
-        location_name = data.get("location_name")
-        lat = data.get("location_lat")
-        lon = data.get("location_lon")
-        lat = float(lat) if lat not in (None, "") else None
-        lon = float(lon) if lon not in (None, "") else None
+        data = request.get_json(silent=True) or {}
+
+        fields, params = [], []
+
+        if "location_name" in data:
+            fields.append("location_name=?")
+            params.append(data.get("location_name"))
+
+        if "location_lat" in data:
+            lat = data.get("location_lat")
+            lat = float(lat) if lat not in (None, "") else None
+            fields.append("location_lat=?")
+            params.append(lat)
+
+        if "location_lon" in data:
+            lon = data.get("location_lon")
+            lon = float(lon) if lon not in (None, "") else None
+            fields.append("location_lon=?")
+            params.append(lon)
 
         db = get_db()
-        db.execute(
-            "UPDATE users SET location_name=?, location_lat=?, location_lon=? WHERE id=?",
-            (location_name, lat, lon, g.user["id"])
-        )
-        db.commit()
+        if fields:
+            params.append(g.user["id"])
+            sql = f"UPDATE users SET {', '.join(fields)} WHERE id=?"
+            db.execute(sql, tuple(params))
+            db.commit()
+
         row = db.execute("SELECT * FROM users WHERE id=?", (g.user["id"],)).fetchone()
         return jsonify({"user": row_to_user_dict(row)})
     except Exception as e:

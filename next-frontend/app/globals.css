@@ -1,0 +1,366 @@
+/* app/globals.css */
+@import "tailwindcss";
+
+/* =========
+   THEME TOKENS (Tailwind v4 style)
+   - Map CSS variables to Tailwind tokens.
+   - Keep Geist variables from the Next.js template.
+   ========= */
+:root {
+  /* Light theme */
+  --background: #ffffff;
+  --foreground: #0f172a; /* slate-900 */
+  --panel: #f8fafc;      /* slate-50 */
+  --soft: #eef2ff;       /* indigo-50 */
+  --muted: #6b7280;      /* gray-500 */
+  --accent: #2563eb;     /* blue-600 */
+  --ok: #16a34a;         /* green-600 */
+  --warn: #f59e0b;       /* amber-500 */
+  --err: #ef4444;        /* red-500 */
+  --border: rgba(2, 6, 23, 0.08);   /* slate-950 @ 8% */
+  --ring: color-mix(in srgb, var(--accent) 45%, transparent);
+
+  /* Radii & shadows */
+  --radius-sm: 0.375rem; /* 6px */
+  --radius-md: 0.75rem;  /* 12px */
+  --radius-lg: 1rem;     /* 16px */
+  --radius-xl: 1.25rem;  /* 20px */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.06);
+  --shadow-md: 0 8px 24px rgba(0,0,0,.10);
+  --shadow-lg: 0 16px 40px rgba(0,0,0,.18);
+}
+
+/* Dark theme by system preference */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0b0f14;
+    --foreground: #e7e9ee;
+    --panel: #0f1522;
+    --soft: #1a2233;
+    --muted: #9aa3b2;
+    --accent: #5aa2ff;
+    --ok: #56d39b;
+    --warn: #f7c948;
+    --err: #ff6b6b;
+    --border: rgba(255, 255, 255, 0.08);
+    --ring: color-mix(in srgb, var(--accent) 50%, transparent);
+  }
+}
+
+/* Dark theme manual override (optional):
+   add data-theme="dark" on <html> or <body> to force dark. */
+[data-theme="dark"] {
+  --background: #0b0f14;
+  --foreground: #e7e9ee;
+  --panel: #0f1522;
+  --soft: #1a2233;
+  --muted: #9aa3b2;
+  --accent: #5aa2ff;
+  --ok: #56d39b;
+  --warn: #f7c948;
+  --err: #ff6b6b;
+  --border: rgba(255, 255, 255, 0.08);
+  --ring: color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+/* Map tokens to Tailwind’s design system */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-panel: var(--panel);
+  --color-soft: var(--soft);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-success: var(--ok);
+  --color-warning: var(--warn);
+  --color-danger: var(--err);
+  --color-border: var(--border);
+  --ring: var(--ring);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system,
+    Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans",
+    "Apple Color Emoji", "Segoe UI Emoji";
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo,
+    Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+}
+
+/* =========
+   BASE
+   ========= */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: light dark;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Selection */
+::selection {
+  background: color-mix(in srgb, var(--accent) 24%, transparent);
+  color: var(--foreground);
+}
+
+/* Focus ring (accessible, subtle) */
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ring);
+  border-radius: 6px;
+}
+
+/* Scrollbar (WebKit) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) transparent;
+}
+*::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+/* Links */
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* Headings (comfortable scale) */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--foreground);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.5rem;
+}
+h1 { font-size: clamp(2rem, 1.2rem + 2.4vw, 3rem); font-weight: 800; }
+h2 { font-size: clamp(1.5rem, 1rem + 1.6vw, 2.25rem); font-weight: 700; }
+h3 { font-size: clamp(1.25rem, 0.95rem + 1vw, 1.75rem); font-weight: 700; }
+h4 { font-size: 1.125rem; font-weight: 600; }
+h5 { font-size: 1rem; font-weight: 600; }
+h6 { font-size: 0.875rem; font-weight: 600; color: var(--muted); }
+
+/* Paragraphs & lists */
+p { margin: 0 0 1rem; color: var(--foreground); }
+ul, ol { margin: 0 0 1rem 1.25rem; }
+li { margin: 0.25rem 0; }
+
+/* Code & pre */
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--soft);
+  border: 1px solid var(--border);
+  padding: 0.15rem 0.35rem;
+  border-radius: var(--radius-sm);
+}
+pre {
+  overflow: auto;
+  padding: 1rem;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+pre code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+
+/* Blockquotes */
+blockquote {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border-radius: var(--radius-sm);
+}
+
+/* Images & media */
+img, svg, video, canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* =========
+   FORMS
+   ========= */
+input, textarea, select {
+  width: 100%;
+  background: var(--panel);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.625rem 0.75rem;
+  line-height: 1.5;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+input::placeholder,
+textarea::placeholder {
+  color: color-mix(in srgb, var(--muted) 80%, transparent);
+}
+input:focus, textarea:focus, select:focus {
+  border-color: color-mix(in srgb, var(--accent) 65%, var(--border));
+  box-shadow: 0 0 0 3px var(--ring);
+  background: color-mix(in srgb, var(--panel) 90%, transparent);
+}
+button {
+  font: inherit;
+  color: inherit;
+}
+
+/* Optional button primitives for quick use */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  padding: .625rem .9rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--panel);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform .06s ease, box-shadow .15s ease, background .15s ease;
+}
+.btn:hover { background: color-mix(in srgb, var(--panel) 90%, transparent); }
+.btn:active { transform: translateY(1px); }
+.btn-primary {
+  background: var(--accent);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.btn-primary:hover { filter: saturate(1.05) brightness(1.02); }
+.btn-ghost {
+  background: transparent;
+  border-color: var(--border);
+}
+
+/* =========
+   SURFACES
+   ========= */
+.surface {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+}
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 1rem;
+}
+
+/* =========
+   BACKGROUNDS (handy utilities)
+   ========= */
+.bg-page {
+  /* Subtle dual radial gradient over background */
+  background:
+    radial-gradient(1100px 700px at 90% -20%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 60%),
+    radial-gradient(900px 600px at -10% 110%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 60%),
+    var(--background);
+}
+.bg-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--border) 100%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--border) 100%, transparent) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* =========
+   ANIMATIONS
+   ========= */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(.98); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes shimmer {
+  0% { background-position: -100% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-in { animation: fade-in .22s ease-out both; }
+.pop-in { animation: pop-in .18s ease-out both; }
+
+/* Skeleton shimmer utility */
+.skeleton {
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--panel) 92%, transparent) 25%,
+    color-mix(in srgb, var(--panel) 80%, transparent) 37%,
+    color-mix(in srgb, var(--panel) 92%, transparent) 63%);
+  background-size: 200% 100%;
+  animation: shimmer 1.25s linear infinite;
+  border-radius: var(--radius-md);
+}
+
+/* =========
+   SIMPLE PROSE (markdown-ish) WITHOUT PLUGINS
+   ========= */
+.prose {
+  color: var(--foreground);
+  max-width: 75ch;
+}
+.prose p { margin: 0 0 1em; }
+.prose h1, .prose h2, .prose h3 { margin-top: 1.5em; }
+.prose a { text-decoration: underline; text-underline-offset: 2px; }
+.prose hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 2rem 0;
+}
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+.prose th, .prose td {
+  border: 1px solid var(--border);
+  padding: 0.5rem 0.75rem;
+}
+.prose th {
+  background: color-mix(in srgb, var(--panel) 85%, transparent);
+  text-align: left;
+}
