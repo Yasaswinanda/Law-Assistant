@@ -8,14 +8,7 @@ export default function Home() {
       <header className="sticky top-0 z-50 backdrop-blur supports-[backdrop-filter]:bg-background/70 border-b border-[color:var(--color-border)]">
         <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Image
-              src="/next.svg"
-              alt="Logo"
-              width={110}
-              height={24}
-              className="dark:invert"
-              priority
-            />
+            
             <span className="hidden sm:inline text-sm px-2 py-1 rounded-full border border-[color:var(--color-border)]">
               Legal Assistant
             </span>
@@ -49,10 +42,7 @@ export default function Home() {
       <section className="mx-auto max-w-7xl px-6 pt-16 pb-12 lg:pt-24 lg:pb-20">
         <div className="grid items-center gap-10 lg:grid-cols-2">
           <div>
-            <span className="inline-flex items-center gap-2 text-xs font-medium tracking-wide px-2.5 py-1.5 rounded-full border border-[color:var(--color-border)] bg-[color:var(--color-panel)]">
-              <Image src="/globe.svg" alt="" width={14} height={14} aria-hidden />
-              Built with Next.js + Flask API
-            </span>
+
 
             <h1 className="mt-4 text-balance font-black tracking-[-0.02em]">
               Find a lawyer, chat securely, and get AI-powered legal insights.
@@ -336,35 +326,10 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-[color:var(--color-border)]">
         <div className="mx-auto max-w-7xl px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-[color:var(--color-muted)]">
+          <p className="text-sm text-[color:var(--color-muted)]" >
             © {new Date().getFullYear()} Legal Assistant. All rights reserved.
           </p>
-          <div className="flex items-center gap-6 text-sm">
-            <a
-              href="https://nextjs.org/docs"
-              target="_blank"
-              rel="noreferrer"
-              className="hover:underline underline-offset-4"
-            >
-              Docs
-            </a>
-            <a
-              href="https://vercel.com/templates?framework=next.js"
-              target="_blank"
-              rel="noreferrer"
-              className="hover:underline underline-offset-4"
-            >
-              Templates
-            </a>
-            <a
-              href="https://nextjs.org/learn"
-              target="_blank"
-              rel="noreferrer"
-              className="hover:underline underline-offset-4"
-            >
-              Learn
-            </a>
-          </div>
+          
         </div>
       </footer>
     </div>

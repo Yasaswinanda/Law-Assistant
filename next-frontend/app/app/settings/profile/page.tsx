@@ -281,7 +281,6 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-page">
       <div className="mx-auto max-w-5xl px-6 py-6">
-        <AppNav />
 
         {/* “Currently used” banner — explicit and non-destructive */}
         <div className="mt-4 surface p-3 text-sm">
